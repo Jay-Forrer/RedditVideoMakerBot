@@ -25,7 +25,7 @@ from video_creation.screenshot_downloader import get_screenshots_of_reddit_posts
 from video_creation.voices import save_text_to_mp3
 from utils.ffmpeg_install import ffmpeg_install
 
-__VERSION__ = "3.2.1"
+__VERSION__ = "3.2"
 
 print(
     """
@@ -48,8 +48,21 @@ def main(POST_ID=None) -> None:
     global redditid, reddit_object
     reddit_object = get_subreddit_threads(POST_ID)
     redditid = id(reddit_object)
+    # reddit_object["thread_post"] = reddit_object["thread_post"].split(".")
+    # texts = []
+    # for text in reddit_object["thread_post"]:
+    #     texts.append(text.rstrip())
+    # reddit_object["thread_post"] = texts
+    # reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
+
+    print(reddit_object["thread_post"])
+    # while "" in reddit_object["thread_post"]:
+    #     reddit_object["thread_post"].remove("")
     length, number_of_comments = save_text_to_mp3(reddit_object)
+    print("this is weird... that should be the same.. length: " + str(length))
     length = math.ceil(length)
+    print("the length and number_of_comments is:  length: " + str(length) + " number of comments: " + str(
+        number_of_comments))
     get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
     bg_config = {
         "video": get_background_config("video"),
@@ -59,6 +72,26 @@ def main(POST_ID=None) -> None:
     download_background_audio(bg_config["audio"])
     chop_background(bg_config, length, reddit_object)
     make_final_video(number_of_comments, length, reddit_object, bg_config)
+
+
+def to_sentence(texts):
+    new_texts = []
+    for text in texts:
+        leng = len(text.split())
+        reng = int(leng / 2)
+        if leng >= 16:
+            new_texts.append(text.rsplit(" ", leng - reng)[0])
+            new_texts.append(text.split(" ", reng)[-1])
+        else:
+            new_texts.append(text)
+    return new_texts
+
+
+def to_words(texts):
+    new_texts = []
+    for text in texts:
+        new_texts = new_texts + text.split()
+    return new_texts
 
 
 def run_many(times) -> None:
@@ -82,8 +115,7 @@ def shutdown() -> NoReturn:
 if __name__ == "__main__":
     if sys.version_info.major != 3 or sys.version_info.minor != 10:
         print(
-            "Hey! Congratulations, you've made it so far (which is pretty rare with no Python 3.10). Unfortunately, this program only works on Python 3.10. Please install Python 3.10 and try again."
-        )
+            "Hey! Congratulations, you've made it so far (which is pretty rare with no Python 3.10). Unfortunately, this program only works on Python 3.10. Please install Python 3.10 and try again.")
         sys.exit()
     ffmpeg_install()
     directory = Path().absolute()
@@ -93,8 +125,8 @@ if __name__ == "__main__":
     config is False and sys.exit()
 
     if (
-        not settings.config["settings"]["tts"]["tiktok_sessionid"]
-        or settings.config["settings"]["tts"]["tiktok_sessionid"] == ""
+            not settings.config["settings"]["tts"]["tiktok_sessionid"]
+            or settings.config["settings"]["tts"]["tiktok_sessionid"] == ""
     ) and config["settings"]["tts"]["voice_choice"] == "tiktok":
         print_substep(
             "TikTok voice requires a sessionid! Check our documentation on how to obtain one.",
@@ -103,7 +135,9 @@ if __name__ == "__main__":
         sys.exit()
     try:
         if config["reddit"]["thread"]["post_id"]:
-            for index, post_id in enumerate(config["reddit"]["thread"]["post_id"].split("+")):
+            for index, post_id in enumerate(
+                    config["reddit"]["thread"]["post_id"].split("+")
+            ):
                 index += 1
                 print_step(
                     f'on the {index}{("st" if index % 10 == 1 else ("nd" if index % 10 == 2 else ("rd" if index % 10 == 3 else "th")))} post of {len(config["reddit"]["thread"]["post_id"].split("+"))}'

@@ -1,6 +1,7 @@
+
 import numpy as np
-from transformers import AutoTokenizer, AutoModel
-import torch
+#from transformers import AutoTokenizer, AutoModel
+#import torch
 
 
 # Mean Pooling - Take attention mask into account for correct averaging

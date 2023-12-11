@@ -7,7 +7,7 @@ from time import sleep
 from requests import Response
 
 from utils import settings
-from cleantext import clean
+# from cleantext import clean
 
 if sys.version_info[0] >= 3:
     from datetime import timezone
@@ -89,8 +89,8 @@ def sanitize_text(text: str) -> str:
     result = result.replace("+", "plus").replace("&", "and")
 
     # emoji removal if the setting is enabled
-    if settings.config["settings"]["tts"]["no_emojis"]:
-        result = clean(result, no_emoji=True)
+    # if settings.config["settings"]["tts"]["no_emojis"]:
+    #     result = clean(result, no_emoji=True)
 
     # remove extra whitespace
     return " ".join(result.split())

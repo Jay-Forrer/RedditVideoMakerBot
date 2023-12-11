@@ -75,8 +75,8 @@ def get_subreddit_threads(POST_ID: str):
         submission = reddit.submission(id=POST_ID)
 
     elif (
-        settings.config["reddit"]["thread"]["post_id"]
-        and len(str(settings.config["reddit"]["thread"]["post_id"]).split("+")) == 1
+            settings.config["reddit"]["thread"]["post_id"]
+            and len(str(settings.config["reddit"]["thread"]["post_id"]).split("+")) == 1
     ):
         submission = reddit.submission(id=settings.config["reddit"]["thread"]["post_id"])
     elif settings.config["ai"]["ai_similarity_enabled"]:  # ai sorting based on comparison
@@ -126,6 +126,7 @@ def get_subreddit_threads(POST_ID: str):
     content["comments"] = []
     if settings.config["settings"]["storymode"]:
         if settings.config["settings"]["storymodemethod"] == 1:
+            # content["thread_post"] = submission.selftext
             content["thread_post"] = posttextparser(submission.selftext)
         else:
             content["thread_post"] = submission.selftext
@@ -141,14 +142,14 @@ def get_subreddit_threads(POST_ID: str):
                 if not sanitised or sanitised == " ":
                     continue
                 if len(top_level_comment.body) <= int(
-                    settings.config["reddit"]["thread"]["max_comment_length"]
+                        settings.config["reddit"]["thread"]["max_comment_length"]
                 ):
                     if len(top_level_comment.body) >= int(
-                        settings.config["reddit"]["thread"]["min_comment_length"]
+                            settings.config["reddit"]["thread"]["min_comment_length"]
                     ):
                         if (
-                            top_level_comment.author is not None
-                            and sanitize_text(top_level_comment.body) is not None
+                                top_level_comment.author is not None
+                                and sanitize_text(top_level_comment.body) is not None
                         ):  # if errors occur with this change to if not.
                             content["comments"].append(
                                 {
