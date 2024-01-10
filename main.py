@@ -21,6 +21,7 @@ from video_creation.background import (
     get_background_config,
 )
 from video_creation.final_video import make_final_video
+from video_creation.final_video_2 import make_final_video_2
 from video_creation.screenshot_downloader import get_screenshots_of_reddit_posts
 from video_creation.voices import save_text_to_mp3
 from utils.ffmpeg_install import ffmpeg_install
@@ -53,17 +54,24 @@ def main(POST_ID=None) -> None:
     # for text in reddit_object["thread_post"]:
     #     texts.append(text.rstrip())
     # reddit_object["thread_post"] = texts
-    # reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
 
+    reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
+    reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
+
+
+    if "&#x200B;" in reddit_object["thread_post"]:
+        reddit_object["thread_post"].remove("&#x200B;")
     print(reddit_object["thread_post"])
-    # while "" in reddit_object["thread_post"]:
-    #     reddit_object["thread_post"].remove("")
+    while "" in reddit_object["thread_post"]:
+        reddit_object["thread_post"].remove("")
+
     length, number_of_comments = save_text_to_mp3(reddit_object)
-    print("this is weird... that should be the same.. length: " + str(length))
+    reddit_post_length =  len(str(reddit_object["thread_post"]))
+    print("The length of the whole reddit post is: "+ str(reddit_post_length))
+    #print("this is weird... that should be the same.. length: " + str(length))
     length = math.ceil(length)
-    print("the length and number_of_comments is:  length: " + str(length) + " number of comments: " + str(
-        number_of_comments))
-    get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
+
+
     bg_config = {
         "video": get_background_config("video"),
         "audio": get_background_config("audio"),
@@ -71,17 +79,22 @@ def main(POST_ID=None) -> None:
     download_background_video(bg_config["video"])
     download_background_audio(bg_config["audio"])
     chop_background(bg_config, length, reddit_object)
-    make_final_video(number_of_comments, length, reddit_object, bg_config)
-
+    get_screenshots_of_reddit_posts(reddit_object, number_of_comments)
+    if(reddit_post_length<=settings.config["settings"]["threshold"]):
+        print("post is small enough to be processed by the smaller text version ")
+        make_final_video(number_of_comments, length, reddit_object, bg_config)
+    else:
+        print("post was too long to be processed with the smaller text version. using the old version")
+        make_final_video_2(number_of_comments, length, reddit_object, bg_config)
 
 def to_sentence(texts):
     new_texts = []
     for text in texts:
-        leng = len(text.split())
-        reng = int(leng / 2)
-        if leng >= 16:
-            new_texts.append(text.rsplit(" ", leng - reng)[0])
-            new_texts.append(text.split(" ", reng)[-1])
+        lleng = len(text.split())
+        rleng = int(lleng / 2)
+        if lleng >= 16:
+            new_texts.append(text.rsplit(" ", lleng - rleng)[0])
+            new_texts.append(text.split(" ", rleng)[-1])
         else:
             new_texts.append(text)
     return new_texts

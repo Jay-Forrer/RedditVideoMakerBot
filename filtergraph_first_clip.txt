@@ -1,0 +1,1 @@
+[1:v]overlay=x='(main_w-overlay_w)/2':y='(main_h-overlay_h)/2',enable='between(t,0.0,0.862)'[bg0];

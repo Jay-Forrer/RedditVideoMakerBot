@@ -1,13 +1,9 @@
-import glob
 import multiprocessing
 import os
 import re
 from os.path import exists  # Needs to be imported specifically
 from typing import Final
 from typing import Tuple, Any, Dict
-
-from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from tqdm import tqdm
 
 import ffmpeg
@@ -21,7 +17,6 @@ from utils.console import print_step, print_substep
 from utils.thumbnail import create_thumbnail
 from utils.videos import save_data
 from utils import settings
-from video_creation.helpers import storymodemethod1
 
 import tempfile
 import threading
@@ -138,7 +133,7 @@ def to_words(texts):
     return new_texts
 
 
-def make_final_video(
+def make_final_video_2(
         number_of_clips: int,
         length: int,
         reddit_obj: dict,
@@ -168,7 +163,6 @@ def make_final_video(
     print_step("Creating the final video 🎥")
 
     background_clip = ffmpeg.input(prepare_background(reddit_id, W=W, H=H))
-    background_clip_mp = VideoFileClip(f"assets/temp/{reddit_id}/background_noaudio.mp4")
 
     # Gather all audio clips
     audio_clips = list()
@@ -278,51 +272,18 @@ def make_final_video(
             )
             current_time += audio_clips_durations[0]
         elif settings.config["settings"]["storymodemethod"] == 1:
-            background_clip = background_clip.overlay(
-                image_clips[0],
-                enable=f"between(t,{current_time},{current_time + audio_clips_durations[0]})",
-                x="(main_w-overlay_w)/2",
-                y="(main_h-overlay_h)/2",
-            )
-
-            current_time += audio_clips_durations[0]
-            audio_clips_durations.pop(0)
-
-
-            for i in track(range(0, number_of_clips), "Collecting the image files..."):
-                line_idx = 0
-
-                total_lines = len(glob.glob(f"assets/temp/{reddit_id}/png/img{i}_line*.png"))
-
-                # Calculate the duration for each line based on the total number of lines
-                if total_lines == 0:
-                    break
-                img_clip_duration = audio_clips_durations[i] / total_lines
-
-                image_clips = list()
-
-                while True:
-                    img_path = f"assets/temp/{reddit_id}/png/img{i}_line{line_idx}.png"
-
-                    if not os.path.exists(img_path):
-                        break
-
-                    image_clips.append(
-                        ffmpeg.input(img_path)["v"].filter(
-                            "scale", screenshot_width, -1
-                        )
+            for i in track(range(0, number_of_clips + 1), "Collecting the image files..."):
+                image_clips.append(
+                    ffmpeg.input(f"assets/temp/{reddit_id}/png/img{i}.png")["v"].filter(
+                        "scale", screenshot_width, -1
                     )
-
-                    background_clip = background_clip.overlay(
-                        image_clips[line_idx],
-                        enable=f"between(t,{current_time + line_idx * img_clip_duration},{current_time + (line_idx + 1) * img_clip_duration})",
-                        x="(main_w-overlay_w)/2",
-                        y="(main_h-overlay_h)/2",
-                    )
-
-
-                    line_idx += 1
-
+                )
+                background_clip = background_clip.overlay(
+                    image_clips[i],
+                    enable=f"between(t,{current_time},{current_time + audio_clips_durations[i]})",
+                    x="(main_w-overlay_w)/2",
+                    y="(main_h-overlay_h)/2",
+                )
                 current_time += audio_clips_durations[i]
     else:
         for i in range(0, number_of_clips + 1):
@@ -400,16 +361,16 @@ def make_final_video(
                 f"Thumbnail - Building Thumbnail in ./results/{subreddit}/thumbnails"
             )
 
-    # text = f"Background by {background_config['video'][2]}"
-    # background_clip = ffmpeg.drawtext(
-    #     background_clip,
-    #     text=text,
-    #     x=f"(w-text_w)",
-    #     y=f"(h-text_h)",
-    #     fontsize=5,
-    #     fontcolor="White",
-    #     fontfile=os.path.join("fonts", "Roboto-Regular.ttf"),
-    # )
+    text = f"Background by {background_config['video'][2]}"
+    background_clip = ffmpeg.drawtext(
+        background_clip,
+        text=text,
+        x=f"(w-text_w)",
+        y=f"(h-text_h)",
+        fontsize=5,
+        fontcolor="White",
+        fontfile=os.path.join("fonts", "Roboto-Regular.ttf"),
+    )
     background_clip = background_clip.filter("scale", W, H)
     print_step("Rendering the video 🎥")
 
@@ -422,44 +383,13 @@ def make_final_video(
 
     defaultPath = f"results/{subreddit}"
     with ProgressFfmpeg(length, on_update_example) as progress:
-        path = os.path.abspath(defaultPath + f"/{filename}.mp4")
+        path = defaultPath + f"/{filename}"
         path = (
                 path[:251] + ".mp4"
-        )  # Prevent an error by limiting the path length, do not change this.
+        )  # Prevent a error by limiting the path length, do not change this.
     try:
-        # print(path+ " and the pathlength is: "+ str(len(path)))
-        # print(final_audio)
-        # print(background_clip.filter)
-        # print(f"the cpu count is: {multiprocessing.cpu_count()}")
-        background_path = f"assets/temp/{reddit_id}/background_final.mp4"
-        try:
-            ffmpeg.output(
-                background_clip,
-                background_path,
-                f="mp4",
-                **{
-                    "c:v": "h264",
-                    "b:v": "20M",
-                    "b:a": "192k",
-                    "threads": multiprocessing.cpu_count(),
-                },
-            ).overwrite_output().run(
-                quiet=True,
-                overwrite_output=True,
-                capture_stdout=False,
-                capture_stderr=False,
-            )
-        except WindowsError as e:
-            print("Windows error occurred")
-            if(e==206):
-                print("handling the 206 error")
-
-            else:
-                print("Other than Windows error 206: " + str(e))
-
-        final_background = ffmpeg.input(background_path)
         ffmpeg.output(
-            final_background,
+            background_clip,
             final_audio,
             path,
             f="mp4",
@@ -501,7 +431,7 @@ def make_final_video(
                         "b:a": "192k",
                         "threads": multiprocessing.cpu_count(),
                     },
-                ).overwrite_output().run(
+                ).overwrite_output().global_args("-progress", progress.output_file.name).run(
                     quiet=True,
                     overwrite_output=True,
                     capture_stdout=False,
