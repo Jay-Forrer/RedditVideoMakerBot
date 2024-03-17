@@ -1,0 +1,3 @@
+[submodule "TTS/TrumpSpeak"]
+	path = TTS/TrumpSpeak
+	url = https://github.com/Jay-Forrer/TrumpSpeak.git

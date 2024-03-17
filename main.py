@@ -25,6 +25,7 @@ from video_creation.final_video_2 import make_final_video_2
 from video_creation.screenshot_downloader import get_screenshots_of_reddit_posts
 from video_creation.voices import save_text_to_mp3
 from utils.ffmpeg_install import ffmpeg_install
+import emoji
 
 __VERSION__ = "3.2"
 
@@ -42,33 +43,28 @@ print(
 print_markdown(
     "### Thanks for using this tool! Feel free to contribute to this project on GitHub! If you have any questions, feel free to join my Discord server or submit a GitHub issue. You can find solutions to many common problems in the documentation: https://reddit-video-maker-bot.netlify.app/"
 )
-checkversion(__VERSION__)
+# checkversion(__VERSION__)
 
 
 def main(POST_ID=None) -> None:
     global redditid, reddit_object
     reddit_object = get_subreddit_threads(POST_ID)
     redditid = id(reddit_object)
-    # reddit_object["thread_post"] = reddit_object["thread_post"].split(".")
-    # texts = []
-    # for text in reddit_object["thread_post"]:
-    #     texts.append(text.rstrip())
-    # reddit_object["thread_post"] = texts
 
     reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
-    reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
+    # reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
 
 
     if "&#x200B;" in reddit_object["thread_post"]:
         reddit_object["thread_post"].remove("&#x200B;")
-    print(reddit_object["thread_post"])
+    # print(reddit_object["thread_post"])
     while "" in reddit_object["thread_post"]:
         reddit_object["thread_post"].remove("")
 
     length, number_of_comments = save_text_to_mp3(reddit_object)
     reddit_post_length =  len(str(reddit_object["thread_post"]))
     print("The length of the whole reddit post is: "+ str(reddit_post_length))
-    #print("this is weird... that should be the same.. length: " + str(length))
+    print("this is weird... that should be the same.. length: " + str(length))
     length = math.ceil(length)
 
 
@@ -96,7 +92,7 @@ def to_sentence(texts):
             new_texts.append(text.rsplit(" ", lleng - rleng)[0])
             new_texts.append(text.split(" ", rleng)[-1])
         else:
-            new_texts.append(text)
+            new_texts.append(emoji.replace_emoji(text, replace=''))
     return new_texts
 
 

@@ -11,6 +11,7 @@ from TTS.elevenlabs import elevenlabs
 from TTS.streamlabs_polly import StreamlabsPolly
 from utils import settings
 from utils.console import print_table, print_step
+from TTS.TrumpSpeak.Trump_Speak import TrumpSpeak
 
 console = Console()
 
@@ -21,6 +22,7 @@ TTSProviders = {
     "TikTok": TikTok,
     "pyttsx": pyttsx,
     "ElevenLabs": elevenlabs,
+    "Trump": TrumpSpeak,
 }
 
 

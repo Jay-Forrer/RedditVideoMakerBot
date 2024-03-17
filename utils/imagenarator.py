@@ -101,7 +101,7 @@ def imagemaker(theme, reddit_obj: dict, txtclr, padding=5, transparent=False) ->
         # Split text into lines with a maximum of 2 to 4 words
 
 
-        lines = form_lines(text.split(), min_words_per_line=4, max_words_per_line=6)
+        lines = form_lines(text.split(), min_words_per_line=5, max_words_per_line=7)
         # print(text.split())
         # print(lines)
 
