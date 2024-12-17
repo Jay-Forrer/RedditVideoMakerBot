@@ -51,6 +51,17 @@ def main(POST_ID=None) -> None:
     reddit_object = get_subreddit_threads(POST_ID)
     redditid = id(reddit_object)
 
+    #print(reddit_object["thread_post"])
+    # reddit_object["thread_title"] = "Final Update: The Cult's Overreach and Our Vindication"
+    # reddit_object["thread_post"] = []
+
+
+
+
+
+
+
+
     reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
     # reddit_object["thread_post"] = to_sentence(reddit_object["thread_post"])
 
@@ -88,7 +99,7 @@ def to_sentence(texts):
     for text in texts:
         lleng = len(text.split())
         rleng = int(lleng / 2)
-        if lleng >= 16:
+        if lleng >= 20:
             new_texts.append(text.rsplit(" ", lleng - rleng)[0])
             new_texts.append(text.split(" ", rleng)[-1])
         else:
